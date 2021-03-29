@@ -23,11 +23,15 @@ def apo(Hsat, ecc):
         return [((1 + ((1 - e)/(1 + e)))/2)*(Re + Hsat) for e in ecc]
     else:
         return ((1+((1-ecc)/(1+ecc)))/2)*(Re + Hsat)
-def trueanom(lat, aop, inc):
-    if  (inc>=lat and math.pi - inc >= lat):
+def trueanom(lat, CeA, aop, inc):
+    if(inc>math.pi/2):
+        inc = math.pi - inc
+    if(inc>lat):
         return math.asin(math.sin(lat)/math.sin(inc)) - aop 
     else:
-        return math.asin(math.cos(math.pi/2 - lat)/math.cos(inc))%(2*math.pi) - aop
+        ang = lat - CeA if(lat-CeA>0) else 0
+        return math.asin(math.sin(ang)/math.sin(inc)) - aop 
+    
 def period(apoapsis):
     if(type(apoapsis) == list):
         return [2*math.pi*math.sqrt(a**3/mu) for a in apoapsis]

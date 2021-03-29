@@ -15,6 +15,7 @@ We = 7.292115856e-5 #rad/sec
 mu = 3.986012e+5 #km3/sec2
 ecliptic = (23*math.pi)/180 #rad
 J2 = -1.082626683e-03
+
 def tview(oe, phi, el):
     #time point p in view
     #unpack orbital elements
@@ -33,23 +34,28 @@ def tview(oe, phi, el):
 
 #Given target latitude, height above sphere, eccentricity, and grazing angle return longitude coverage
 def loncover(lat, oe, el, descend):
-    a, ecc, inc, RAAN, AoP = oe 
+    #unpack
+    a, ecc, inc, RAAN, AoP = oe
+    
+    p = hf.semilatus(ecc, a)
+    Rlat= hf.geodeticRadius(lat)
+    Rs = Rlat + (a - Re)
+    CeA = math.pi/2 - (math.asin(math.cos(el)*(Rlat/(Rs)))) + el 
+    
     if descend==0:
-        Ta  = hf.trueanom(lat, AoP, inc)#rad, true anomaly
+        Ta  = hf.trueanom(lat, CeA, AoP, inc)#rad, true anomaly
     else:
-        Ta  = hf.trueanom(lat, AoP, inc)#rad, true anomaly
+        Ta  = hf.trueanom(lat, CeA, AoP, inc)#rad, true anomaly
         u = (Ta + AoP) % 2*math.pi
         Ta  = (math.pi - (u + AoP)) % (2*math.pi)
     
-    p   = hf.semilatus(ecc, a)
-    Rlat= hf.geodeticRadius(lat)
     Rs  = hf.satgeodeticradius(p, ecc, Ta)
     Hsat= Rs - Rlat
     # 30 x (y x 5,400)
     if Hsat<0:
         warnings.warn('Hsat is below oblate spheriod')
     
-    CeA = math.pi/2 - (math.asin(math.cos(el)*(Rlat/(Rs)))) + el 
+    
     # 30 x [(y x 5,400) OR len(h) x 30 OR 0]
     lon = math.atan(math.tan(CeA)/math.sin((math.pi/2)-lat))
     # 30 x [(y x 5,400) OR len(h) x 30 OR 0]
